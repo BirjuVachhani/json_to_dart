@@ -99,10 +99,10 @@ class TypeDefinition {
     return '$expression.toJson()';
   }
 
-  String jsonParseExpression(String key, bool privateField) {
+  String jsonParseExpression(String key, bool privateField,bool shouldUseCamelCase) {
     final jsonKey = "json['$key']";
     final fieldKey =
-        fixFieldName(key, typeDef: this, privateField: privateField);
+        fixFieldName(key, typeDef: this, privateField: privateField, shouldUseCamelCase: shouldUseCamelCase);
     if (isPrimitive) {
       if (name == "List") {
         return "$fieldKey = json['$key'].cast<$subtype>();";
@@ -121,9 +121,9 @@ class TypeDefinition {
     }
   }
 
-  String toJsonExpression(String key, bool privateField) {
+  String toJsonExpression(String key, bool privateField,bool shouldUseCamelCase) {
     final fieldKey =
-        fixFieldName(key, typeDef: this, privateField: privateField);
+        fixFieldName(key, typeDef: this, privateField: privateField, shouldUseCamelCase: shouldUseCamelCase);
     final thisKey = 'this.$fieldKey';
     if (isPrimitive) {
       return "data['$key'] = $thisKey;";
@@ -153,10 +153,12 @@ class Dependency {
 class ClassDefinition {
   final String _name;
   final bool _privateFields;
+  final bool _shouldUseCamelCase;
   final Map<String, TypeDefinition> fields = new Map<String, TypeDefinition>();
 
   String get name => _name;
   bool get privateFields => _privateFields;
+  bool get shouldUseCamelCase => _shouldUseCamelCase;
 
   List<Dependency> get dependencies {
     final dependenciesList = new List<Dependency>();
@@ -170,7 +172,7 @@ class ClassDefinition {
     return dependenciesList;
   }
 
-  ClassDefinition(this._name, [this._privateFields = false]);
+  ClassDefinition(this._name, [this._privateFields = false, this._shouldUseCamelCase = true]);
 
   bool operator ==(other) {
     if (other is ClassDefinition) {
@@ -218,7 +220,7 @@ class ClassDefinition {
     return fields.keys.map((key) {
       final f = fields[key];
       final fieldName =
-          fixFieldName(key, typeDef: f, privateField: privateFields);
+          fixFieldName(key, typeDef: f, privateField: privateFields,shouldUseCamelCase: shouldUseCamelCase);
       final sb = new StringBuffer();
       sb.write('\t');
       _addTypeDef(f, sb);
@@ -231,9 +233,9 @@ class ClassDefinition {
     return fields.keys.map((key) {
       final f = fields[key];
       final publicFieldName =
-          fixFieldName(key, typeDef: f, privateField: false);
+          fixFieldName(key, typeDef: f, privateField: false,shouldUseCamelCase: shouldUseCamelCase);
       final privateFieldName =
-          fixFieldName(key, typeDef: f, privateField: true);
+          fixFieldName(key, typeDef: f, privateField: true,shouldUseCamelCase: shouldUseCamelCase);
       final sb = new StringBuffer();
       sb.write('\t');
       _addTypeDef(f, sb);
@@ -253,7 +255,7 @@ class ClassDefinition {
     fields.keys.forEach((key) {
       final f = fields[key];
       final publicFieldName =
-          fixFieldName(key, typeDef: f, privateField: false);
+          fixFieldName(key, typeDef: f, privateField: false,shouldUseCamelCase: shouldUseCamelCase);
       _addTypeDef(f, sb);
       sb.write(' $publicFieldName');
       if (i != len) {
@@ -265,9 +267,9 @@ class ClassDefinition {
     fields.keys.forEach((key) {
       final f = fields[key];
       final publicFieldName =
-          fixFieldName(key, typeDef: f, privateField: false);
+          fixFieldName(key, typeDef: f, privateField: false,shouldUseCamelCase: shouldUseCamelCase);
       final privateFieldName =
-          fixFieldName(key, typeDef: f, privateField: true);
+          fixFieldName(key, typeDef: f, privateField: true,shouldUseCamelCase: shouldUseCamelCase);
       sb.write('this.$privateFieldName = $publicFieldName;\n');
     });
     sb.write('}');
@@ -282,7 +284,7 @@ class ClassDefinition {
     fields.keys.forEach((key) {
       final f = fields[key];
       final fieldName =
-          fixFieldName(key, typeDef: f, privateField: privateFields);
+          fixFieldName(key, typeDef: f, privateField: privateFields,shouldUseCamelCase: shouldUseCamelCase);
       sb.write('this.$fieldName');
       if (i != len) {
         sb.write(', ');
@@ -298,7 +300,7 @@ class ClassDefinition {
     sb.write('\t$name');
     sb.write('.fromJson(Map<String, dynamic> json) {\n');
     fields.keys.forEach((k) {
-      sb.write('\t\t${fields[k].jsonParseExpression(k, privateFields)}\n');
+      sb.write('\t\t${fields[k].jsonParseExpression(k, privateFields,shouldUseCamelCase)}\n');
     });
     sb.write('\t}');
     return sb.toString();
@@ -309,7 +311,7 @@ class ClassDefinition {
     sb.write(
         '\tMap<String, dynamic> toJson() {\n\t\tfinal Map<String, dynamic> data = new Map<String, dynamic>();\n');
     fields.keys.forEach((k) {
-      sb.write('\t\t${fields[k].toJsonExpression(k, privateFields)}\n');
+      sb.write('\t\t${fields[k].toJsonExpression(k, privateFields, shouldUseCamelCase)}\n');
     });
     sb.write('\t\treturn data;\n');
     sb.write('\t}');

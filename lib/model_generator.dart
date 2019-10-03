@@ -20,10 +20,11 @@ class Hint {
 class ModelGenerator {
   final String _rootClassName;
   final bool _privateFields;
+  final bool _shouldUseCamelCase;
   List<ClassDefinition> allClasses = new List<ClassDefinition>();
   List<Hint> hints;
 
-  ModelGenerator(this._rootClassName, [this._privateFields = false, hints]) {
+  ModelGenerator(this._rootClassName, [this._privateFields = false, this._shouldUseCamelCase = true, hints]) {
     if (hints != null) {
       this.hints = hints;
     } else {
@@ -45,7 +46,7 @@ class ModelGenerator {
     } else {
       final keys = jsonRawData.keys;
       ClassDefinition classDefinition =
-          new ClassDefinition(className, _privateFields);
+          new ClassDefinition(className, _privateFields,_shouldUseCamelCase);
       keys.forEach((key) {
         TypeDefinition typeDef;
         final hint = _hintForPath('$path/$key');

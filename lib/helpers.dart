@@ -130,13 +130,16 @@ isPrimitiveType(String typeName) {
 }
 
 String fixFieldName(String name,
-    {TypeDefinition typeDef, bool privateField = false}) {
+    {TypeDefinition typeDef, bool privateField = false,bool shouldUseCamelCase = true}) {
   var properName = name;
   if (name.startsWith('_') || name.startsWith(new RegExp(r'[0-9]'))) {
     final firstCharType = typeDef.name.substring(0, 1).toLowerCase();
     properName = '$firstCharType$name';
   }
-  final fieldName = camelCaseFirstLower(properName);
+  String fieldName = properName;
+  if(shouldUseCamelCase){
+    fieldName = camelCaseFirstLower(properName);
+  }
   if (privateField) {
     return '_$fieldName';
   }
