@@ -17,3 +17,6 @@ pubspec.lock
 
 # Directory created by dartdoc
 doc/api/
+
+# Mac files
+.DS_STORE
